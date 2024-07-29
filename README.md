@@ -1,5 +1,11 @@
 # NekoRMD python
 
+## TODO
+
+- [ ] translate the documentation into English
+
+- [ ] finish writing the remaining commands from the official documentation
+
 ## Installation
 
 ```bash
