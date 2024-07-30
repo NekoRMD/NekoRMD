@@ -2,3 +2,4 @@
 /build/
 .idea/
 /NekoRMD.egg-info/
+.DS_Store
