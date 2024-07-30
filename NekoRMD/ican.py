@@ -27,6 +27,17 @@ class I_CAN:
         return self.bus
 
     def send_cmd(self, data, delay):
+        """
+        Отправка команды через интерфейс CAN.
+
+        Параметры:
+        ----------
+        msg : список
+            Команда в формате списка байтов.
+        delay : float
+            Задержка перед отправкой следующей команды (по умолчанию 0.01 секунды).
+        """
+        
         if len(data) != 8:
             raise ValueError("Data length should be exactly 8 bytes")
         message = can.Message(arbitration_id=self.identifier,

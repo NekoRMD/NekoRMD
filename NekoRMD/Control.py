@@ -17,6 +17,10 @@ class Control:
     def freeze(self):
         message = [0x81, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
         return self.io.send_cmd(message, 0.01)
+    
+    def unfreeze(self):
+        msg = [0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+        return self.io.send_cmd(msg, 0.01)
 
     class Position:
         def __init__(self, control, io):
@@ -69,37 +73,68 @@ class Control:
                     self.__print_position_data()
                     now = datetime.now()
 
-                    # Выводим максимально подробное время
                     detailed_time = now.strftime("%Y-%m-%d %H:%M:%S.%f")
                     print("Текущее время с микросекундами:", detailed_time)
                     time.sleep(0.2)
 
 
-        # Функция для установки позиции двигателя в радианах
-        def set_position_radians(self, position):
-            position_int = int(position * 100)  # Преобразование радианов в значение для отправки
-            # Команда для установки позиции (0xA4)
-            msg = [0xA4, 0x00, 0x00, 0x00, 
-                (position_int & 0xFF), 
-                (position_int >> 8) & 0xFF, 
-                (position_int >> 16) & 0xFF, 
-                (position_int >> 24) & 0xFF]
-            response = self.io.send_cmd(msg, 0.01)
-            
-            print("sending: " + str(msg))
+        def set_increment_position(self, max_speed, angle):
+            """
+            Управление приращением позиции (многооборотный режим).
 
-            # Проверка ответа
-            if response.data[0] == 0xA4:
-                if response.data[1:8] == [0x00, 0x00, 0x00, 0x00, 0x00, 0xF3, 0x00]:
-                    raise Exception("Ошибка: двигатель не может достичь установленной позиции")
-                return response
-            else:
-                raise Exception("Неверный ответ от двигателя")
+            Параметры:
+            ----------
+            max_speed : int
+                Максимальная скорость в RPM.
+            angle : int
+                Приращение угла в сотых долях градуса.
 
-        # Функция для установки позиции двигателя в градусах
-        def set_position_degrees(self, position):
-            position_radians = position * (3.141592653589793 / 180)  # Преобразование градусов в радианы
-            return self.set_position_radians(position_radians)
+            Пример:
+            -------
+            motor.control.position.set_increment_position(max_speed=1000, angle=3600)
+            """
+                
+            msg = [0xA8, 0x00, max_speed & 0xFF, (max_speed >> 8) & 0xFF, angle & 0xFF, (angle >> 8) & 0xFF, (angle >> 16) & 0xFF, (angle >> 24) & 0xFF]
+            self.io.send_cmd(msg, 0.1)
+
+        def set_single_turn_position(self, direction, max_speed, angle):
+            """
+            Управление положением на одном обороте.
+
+            Параметры:
+            ----------
+            direction : int
+                Направление вращения (0x00 - по часовой стрелке, 0x01 - против часовой стрелки).
+            max_speed : int
+                Максимальная скорость в RPM.
+            angle : int
+                Угол управления в сотых долях градуса.
+
+            Пример:
+            -------
+            motor.control.position.set_single_turn_position(0x01, 1000, 3800)
+            """
+            msg = [0xA6, direction, max_speed & 0xFF, (max_speed >> 8) & 0xFF, angle & 0xFF, (angle >> 8) & 0xFF, 0x00, 0x00]
+            self.io.send_cmd(msg, 0.1)
+
+        def set_absolute_position(self, max_speed, angle):
+            """
+            Управление абсолютной позицией (многооборотный режим).
+
+            Параметры:
+            ----------
+            max_speed : int
+                Максимальная скорость в RPM.
+            angle : int
+                Абсолютный угол в сотых долях градуса.
+
+            Пример:
+            -------
+            motor.control.position.set_absolute_position(max_speed=1000, angle=7200)
+            """
+                
+            msg = [0xA4, 0x00, max_speed & 0xFF, (max_speed >> 8) & 0xFF, angle & 0xFF, (angle >> 8) & 0xFF, (angle >> 16) & 0xFF, (angle >> 24) & 0xFF]
+            self.io.send_cmd(msg, 0.1)
 
 
     class Speed:
@@ -107,8 +142,32 @@ class Control:
             self.control = control
             self.io = io
         
-        def set_speed(self, speed):
-            pass
+        def set_speed(self, speed=0):
+            """
+            Sends a speed control command to the motor via the CAN bus.
+
+            This function forms and sends command 0xA2 to control the speed of the motor output shaft.
+            The speed value is transmitted in the int32_t format and corresponds to a speed of 0.01 degrees/second per least significant bit (LSB).
+
+            Parameters:
+            - speed (float): The desired speed in degrees per second. The value can be positive or negative to control the direction of rotation.
+
+            Notes:
+            - The speed value will be rounded to the nearest integer.
+            - A speed of 0 will stop the motor.
+            - Check the range of allowable speeds for your motor in the technical documentation.
+
+            Example usage:
+            motor.control.speed.set_speed(100)
+            """
+            speedControl = int(speed / 0.01)
+            msg = [0xA2, 0x00, 0x00, 0x00, 
+                speedControl & 0xFF, 
+                (speedControl >> 8) & 0xFF, 
+                (speedControl >> 16) & 0xFF, 
+                (speedControl >> 24) & 0xFF]
+            # print("Request: " + str([hex(byte) for byte in msg]))   
+            return self.io.send_cmd(msg, 0.1)
 
     class Torque:
         def __init__(self, control, io):

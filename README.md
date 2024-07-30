@@ -2,9 +2,15 @@
 
 ## TODO
 
-- [ ] translate the documentation into English
-
-- [ ] finish writing the remaining commands from the official documentation
+- [x] Position control
+- [x] Speed control
+- [ ] New initialization algorithm (HIGH)
+- [ ] Torque control
+- [ ] Full telemetry getters support
+- [ ] Write tests
+- [ ] Translate the documentation into English and Ru
+- [ ] Finish writing the remaining commands from the official documentation
+- [ ] Publish in pip
 
 ## Installation
 
@@ -20,8 +26,7 @@ https://python-can.readthedocs.io/en/stable/installation.html
 
 ### NekoRMD
 
-Базовый класс управления моторами RMD через объект класса. При инициализации в конструкторе обязательно требуется указать параметры адресса CAN устройства и тип мотора.
-
+The basic class for controlling RMD motors through a class object. When initializing in the constructor, it is mandatory to specify the CAN device address parameters and the motor type.
 
 ```python
 from NekoRMD.MotorType import MotorType
@@ -30,9 +35,11 @@ from NekoRMD.NekoRMD import NekoRMD
 motor = NekoRMD(address=0x149, motor_type=MotorType.RMD8x_pro)
 ```
 
-`motor.setup()` - Инициализация общения с мотором. Устанавливает CAN соединение с мотором и позволяет общаться с ним?
+`motor.setup()` - Initializes communication with the motor. Establishes a CAN connection with the motor and allows communication with it.
 
-`motor.init()` - Отправка команды включения мотора.
+`motor.init()` - Sends the command to turn on the motor.
+
+Attention! After initializing the motor, it may not respond for 10 seconds! With a high degree of probability, your problems of non-fulfillment of motor commands are solved using time.sleep(10)
 
 `motor.restart()` - Перезагрузить мотор.
 
@@ -45,22 +52,46 @@ motor = NekoRMD(address=0x149, motor_type=MotorType.RMD8x_pro)
 
 `motor.contol.freeze()` - Отправка команды заморозить мотор (мотор будет удерживать свою позицию).
 
+`motor.contol.unfreeze()` - Отправка команды разморозить мотор.
+
 #### Speed control
 
-
+`motor.control.speed.set_speed(degrees_per_sec)` - Отправка команды управления мотором по скорости. Отправка аргумента 0 остановит мотор.
 
 #### Position control
 
-Установить позицию мотора по радианам:
+`set_increment_position(self, max_speed, angle)` - Управление приращением позиции (многооборотный режим).
 
+**Параметры:**
+- `max_speed` (int): Максимальная скорость в RPM.
+- `angle` (int): Приращение угла в сотых долях градуса.
+
+**Пример:**
 ```python
-motor.control.position.set_position_radians(1.75)
+motor.control.position.set_increment_position(max_speed=1000, angle=3600)
 ```
 
-Установить позицию мотора по градусам:
+`set_single_turn_position(self, direction, max_speed, angle)` - Управление положением на одном обороте.
 
+**Параметры:**
+- `direction` (int): Направление вращения (0x00 - по часовой стрелке, 0x01 - против часовой стрелки).
+- `max_speed` (int): Максимальная скорость в RPM.
+- `angle` (int): Угол управления в сотых долях градуса.
+
+**Пример:**
 ```python
-motor.control.position.set_position_degrees(60)
+motor.control.position.set_single_turn_position(0x01, 1000, 3800)
+```
+
+`set_absolute_position(self, max_speed, angle)` - Управление абсолютной позицией (многооборотный режим).
+
+**Параметры:**
+- `max_speed` (int): Максимальная скорость в RPM.
+- `angle` (int): Абсолютный угол в сотых долях градуса.
+
+**Пример:**
+```python
+motor.control.position.set_absolute_position(max_speed=1000, angle=7200)
 ```
 
 Получить текущую позиию мотора. Вернет `timestamp, current_position`:
