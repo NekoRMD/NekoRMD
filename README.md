@@ -11,6 +11,7 @@
 - [ ] Translate the documentation into English and Ru
 - [ ] Finish writing the remaining commands from the official documentation
 - [ ] Publish in pip
+- [ ] Many motors support (up to 3) using CAN
 
 ## Installation
 
