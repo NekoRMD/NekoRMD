@@ -21,7 +21,7 @@
 ## Installation
 
 ```bash
-pip install neko-rmd
+pip install NekoRMD
 ```
 
 Configure CAN in your device:
