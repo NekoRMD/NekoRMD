@@ -1,9 +1,17 @@
+Metadata-Version: 2.1
+Name: NekoRMD
+Version: 0.1.1
+Summary: NekoRMD is a Python library for controlling RMD series motors through a CAN interface. It provides a wide range of functions for motor control and monitoring.
+Home-page: https://github.com/NekoRMD/NekoRMD
+Author: Artem-Darius Weber
+Author-email: neko-rmd@k-lab.su
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+
 # NekoRMD python
-
-**NekoRMD** is a Python library for controlling RMD series motors through a CAN interface. It provides a wide range of functions for motor control and monitoring.
-
-![logo.JPG](__asset__%2Flogo.JPG)
-~ logo was generated using DALLE 3 ~
 
 ## TODO
 

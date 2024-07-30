@@ -1,0 +1,15 @@
+MANIFEST.in
+README.md
+setup.py
+NekoRMD/Control.py
+NekoRMD/MotorInterface.py
+NekoRMD/MotorLogs.py
+NekoRMD/MotorType.py
+NekoRMD/NekoRMD.py
+NekoRMD/Telemetry.py
+NekoRMD/__init__.py
+NekoRMD/ican.py
+NekoRMD.egg-info/PKG-INFO
+NekoRMD.egg-info/SOURCES.txt
+NekoRMD.egg-info/dependency_links.txt
+NekoRMD.egg-info/top_level.txt
