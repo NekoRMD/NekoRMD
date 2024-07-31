@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='NekoRMD',
-    version='0.1.3',
+    version='0.2.0',
     author='Artem-Darius Weber',
     author_email='neko-rmd@k-lab.su',
     description='NekoRMD is a Python library for controlling RMD series motors through a CAN interface. It provides a wide range of functions for motor control and monitoring.',
