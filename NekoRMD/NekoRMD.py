@@ -14,19 +14,31 @@ class NekoRMD(MotorInterface):
         
         self.io = I_CAN(address)
         self.motor_type = motor_type
-        self.control = Control(self.motor_type, self.io)
-        self.telemetry = Telemetry(self.motor_type, self.io)
+        self.control = Control(self.motor_type, self.io, address)
+        self.telemetry = Telemetry(self.motor_type, self.io, address)
         self.logs = MotorLogs()
+
+    WAIT_AFTER_INIT = True
 
     def setup(self):
         return self.io.setup()
 
+
     def init(self):
         if self.motor_type == MotorType.RMD8x_pro:
             message = [0x88, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-            return self.io.send_cmd(message, 0.01)
+            response = self.io.send_cmd(message, 0.01)
+        
+            if not(response.arbitration_id == self.motor_address and response.data[0] == 0x88):
+                return None
+            
+            print(f"Motor of type {self.motor_type.name} initialized at address {self.io.identifier}")
 
-        print(f"Motor of type {self.motor_type.name} initialized at address {self.io.identifier}")
+            if self.WAIT_AFTER_INIT:
+                print("please, wait 10 sec...")
+                time.sleep(10)
+
+            return response
 
     def restart(self):
         return self.init()

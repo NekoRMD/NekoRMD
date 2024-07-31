@@ -4,32 +4,45 @@ import time
 from datetime import datetime
 
 class Control:
-    def __init__(self, motor_type, io):
+    def __init__(self, motor_type, io, motor_address):
         if not isinstance(motor_type, MotorType):
             raise ValueError("Invalid motor type")
+        
         self.motor_type = motor_type
         self.io = io
+        self.motor_address = motor_address
 
-        self.position = self.Position(self, self.io)
-        self.speed = self.Speed(self, self.io)
-        self.Torque = self.Torque(self, self.io)
+        self.position = self.Position(self, self.io, self.motor_address)
+        self.speed = self.Speed(self, self.io, self.motor_address)
+        self.Torque = self.Torque(self, self.io, self.motor_address)
 
     def freeze(self):
         message = [0x81, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-        return self.io.send_cmd(message, 0.01)
+        response = self.io.send_cmd(message, 0.01)
+        if not(response.arbitration_id == self.motor_address and response.data[0] == 0x81):
+            return None
+        return response
     
     def unfreeze(self):
-        msg = [0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-        return self.io.send_cmd(msg, 0.01)
+        message = [0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+        response = self.io.send_cmd(message, 0.01)
+        if not(response.arbitration_id == self.motor_address and response.data[0] == 0x77):
+            return None
+        return response
 
     class Position:
-        def __init__(self, control, io):
+        def __init__(self, control, io, motor_address):
             self.control = control
             self.io = io
+            self.motor_address = motor_address
 
         def __get_motor_position(self):
-            msg = [0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-            response = self.io.send_cmd(msg, delay=0.01)
+            message = [0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+            response = self.io.send_cmd(message, delay=0.01)
+
+            if not(response.arbitration_id == self.motor_address and response.data[0] == 0x90):
+                return None
+            
             timestamp = response.timestamp
             data = response.data
             return timestamp, data
@@ -94,8 +107,19 @@ class Control:
             motor.control.position.set_increment_position(max_speed=1000, angle=3600)
             """
                 
-            msg = [0xA8, 0x00, max_speed & 0xFF, (max_speed >> 8) & 0xFF, angle & 0xFF, (angle >> 8) & 0xFF, (angle >> 16) & 0xFF, (angle >> 24) & 0xFF]
-            self.io.send_cmd(msg, 0.1)
+            msg = [0xA8, 
+                   0x00, 
+                   max_speed & 0xFF, 
+                   (max_speed >> 8) & 0xFF, 
+                   angle & 0xFF, 
+                   (angle >> 8) & 0xFF, 
+                   (angle >> 16) & 0xFF, 
+                   (angle >> 24) & 0xFF]
+            response = self.io.send_cmd(msg, 0.1)
+
+            if not(response.arbitration_id == self.motor_address and response.data[0] == 0xA8):
+                return None
+            return response
 
         def set_single_turn_position(self, direction, max_speed, angle):
             """
@@ -114,8 +138,18 @@ class Control:
             -------
             motor.control.position.set_single_turn_position(0x01, 1000, 3800)
             """
-            msg = [0xA6, direction, max_speed & 0xFF, (max_speed >> 8) & 0xFF, angle & 0xFF, (angle >> 8) & 0xFF, 0x00, 0x00]
-            self.io.send_cmd(msg, 0.1)
+            msg = [0xA6, 
+                   direction, 
+                   max_speed & 0xFF, 
+                   (max_speed >> 8) & 0xFF, 
+                   angle & 0xFF, 
+                   (angle >> 8) & 0xFF, 
+                   0x00, 
+                   0x00]
+            response = self.io.send_cmd(msg, 0.1)
+            if not(response.arbitration_id == self.motor_address and response.data[0] == 0xA6):
+                return None
+            return response
 
         def set_absolute_position(self, max_speed, angle):
             """
@@ -133,14 +167,25 @@ class Control:
             motor.control.position.set_absolute_position(max_speed=1000, angle=7200)
             """
                 
-            msg = [0xA4, 0x00, max_speed & 0xFF, (max_speed >> 8) & 0xFF, angle & 0xFF, (angle >> 8) & 0xFF, (angle >> 16) & 0xFF, (angle >> 24) & 0xFF]
-            self.io.send_cmd(msg, 0.1)
+            message = [0xA4, 
+                       0x00, 
+                       max_speed & 0xFF, 
+                       (max_speed >> 8) & 0xFF, 
+                       angle & 0xFF, 
+                       (angle >> 8) & 0xFF, 
+                       (angle >> 16) & 0xFF, 
+                       (angle >> 24) & 0xFF]
+            response = self.io.send_cmd(message, 0.1)
+            if not(response.arbitration_id == self.motor_address and response.data[0] == 0xA4):
+                return None
+            return response
 
 
     class Speed:
-        def __init__(self, control, io):
+        def __init__(self, control, io, motor_address):
             self.control = control
             self.io = io
+            self.motor_address = motor_address
         
         def set_speed(self, speed=0):
             """
@@ -161,22 +206,29 @@ class Control:
             motor.control.speed.set_speed(100)
             """
             speedControl = int(speed / 0.01)
-            msg = [0xA2, 0x00, 0x00, 0x00, 
+            message = [0xA2, 0x00, 0x00, 0x00, 
                 speedControl & 0xFF, 
                 (speedControl >> 8) & 0xFF, 
                 (speedControl >> 16) & 0xFF, 
                 (speedControl >> 24) & 0xFF]
             # print("Request: " + str([hex(byte) for byte in msg]))   
-            return self.io.send_cmd(msg, 0.1)
+            response = self.io.send_cmd(message, 0.1)
+            if not(response.arbitration_id == self.motor_address and response.data[0] == 0xA2):
+                return None
+            return response
 
     class Torque:
-        def __init__(self, control, io):
+        def __init__(self, control, io, motor_address):
             self.control = control
             self.io = io
+            self.motor_address = motor_address
         
         def test(self):
             message = [0xA1, 0x00, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00]
-            return self.io.send_cmd(message, 0.01)
+            response = self.io.send_cmd(message, 0.01)
+            if not(response.arbitration_id == self.motor_address and response.data[0] == 0xA1):
+                return None
+            return response
 
         def __calculate_crc(self, data):
             crc = 0xFFFF
@@ -219,4 +271,6 @@ class Control:
             print([hex(num) for num in message])  # Print hex values for debugging
 
             response = self.io.send_cmd(message, 0.01)
+            if not(response.arbitration_id == self.motor_address and response.data[0] == 0xA1):
+                return None
             return response
