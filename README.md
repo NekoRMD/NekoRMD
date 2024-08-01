@@ -286,3 +286,12 @@ Similarly, for processing and converting motor responses into text format, you c
 ```python
 motor.logs.decode_motor_response(response)
 ```
+
+### Protocol Docs
+
+[RMD-X Motor Motion Protocol V3.9-240415.pdf](docs%2FRMD-X%20Motor%20Motion%20Protocol%20V3.9-240415.pdf)
+
+### Another links:
+https://github.com/K-Lab-Students/MyActuator-RMD-X8-Pro-firmware
+
+https://github.com/K-Lab-Students/RMD_Cock_Edition
