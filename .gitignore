@@ -4,3 +4,4 @@
 /NekoRMD.egg-info/
 .DS_Store
 /NekoRMD/__pycache__/
+**/venv/
